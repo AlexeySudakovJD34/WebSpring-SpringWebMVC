@@ -1,11 +1,13 @@
 package org.example.service;
 
 import org.example.exception.NotFoundException;
-import org.example.model.Post;
+import org.example.model.PostDTO;
+import org.example.model.PostMapper;
 import org.example.repository.PostRepositoryInterface;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -16,20 +18,20 @@ public class PostService {
         this.repository = repository;
     }
 
-    public List<Post> all() {
-        return repository.all();
+    public List<PostDTO> all() {
+        return repository.all().stream().map(PostMapper::toPostDTO).collect(Collectors.toList());
     }
 
-    public Post getById(long id) {
-        return repository.getById(id).orElseThrow(() ->
-                new NotFoundException("Post with id=" + id + " is not found"));
+    public PostDTO getById(long id) {
+        return PostMapper.toPostDTO(repository.getById(id)
+                .orElseThrow(() -> new NotFoundException("Post with id=" + id + " is not found")));
     }
 
-    public Post save(Post post) {
-        if (post.getId() <= repository.all().size()) {
-            return repository.save(post);
+    public PostDTO save(PostDTO postDTO) {
+        if (postDTO.getId() <= repository.all().size()) {
+            return PostMapper.toPostDTO(repository.save(PostMapper.toPost(postDTO)));
         }
-        throw new NotFoundException("Post with id=" + post.getId() + " is not found");
+        throw new NotFoundException("Post with id=" + postDTO.getId() + " is not found");
     }
 
     public void removeById(long id) {
