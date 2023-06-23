@@ -2,7 +2,7 @@ package org.example.controller;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.model.Post;
+import org.example.model.PostDTO;
 import org.example.service.PostService;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,21 +22,21 @@ public class PostController {
     }
 
     @GetMapping
-    public List<Post> all() {
+    public List<PostDTO> all() {
         return service.all();
     }
 
     @GetMapping("/{id}")
     public void getById(@PathVariable long id, HttpServletResponse response) throws IOException {
         response.setContentType(APPLICATION_JSON);
-        Post post = service.getById(id);
+        PostDTO post = service.getById(id);
         response.getWriter().print(gson.toJson(post));
     }
 
     @PostMapping
     public void save(Reader body, HttpServletResponse response) throws IOException {
         response.setContentType(APPLICATION_JSON);
-        final var post = gson.fromJson(body, Post.class);
+        PostDTO post = gson.fromJson(body, PostDTO.class);
         final var data = service.save(post);
         response.getWriter().print(gson.toJson(data));
     }

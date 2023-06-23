@@ -3,11 +3,12 @@ package org.example.repository;
 import org.example.model.Post;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Repository
 public class PostRepository implements PostRepositoryInterface {
@@ -15,11 +16,13 @@ public class PostRepository implements PostRepositoryInterface {
     private final AtomicLong idCounter = new AtomicLong(1);
 
     public List<Post> all() {
-        return new ArrayList<>(repo.values());
+//        return new ArrayList<>(repo.values().stream().filter(x -> !x.isDeleted()).toList());
+        return repo.values().stream().filter(x -> !x.isDeleted()).collect(Collectors.toList());
     }
 
     public Optional<Post> getById(long id) {
-        return Optional.ofNullable(repo.get(id));
+        Post postById = repo.get(id);
+        return Optional.ofNullable(postById.isDeleted() ? null : postById);
     }
 
     public Post save(Post post) {
@@ -29,12 +32,17 @@ public class PostRepository implements PostRepositoryInterface {
             post.setId(newPostId);
             repo.put(newPostId,post);
         } else {
-            repo.put(postId,post);
+            if (repo.containsKey(postId) && !repo.get(postId).isDeleted()) {
+                repo.put(postId, post);
+            }
         }
         return post;
     }
 
     public void removeById(long id) {
-        repo.remove(id);
+        Post postToRemove = repo.get(id);
+        if (postToRemove != null) {
+            postToRemove.setDeleted(true);
+        }
     }
 }
